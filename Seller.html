@@ -18,16 +18,14 @@
 
   <script>
     const client = new Appwrite.Client()
-      .setEndpoint('https://cloud.appwrite.io/v1')
+      .setEndpoint('https://fra.cloud.appwrite.io/v1')
       .setProject('6867bb5f003e63ba248d')
-      .setKey('standard_c788585cdd5f97022a9d6536b5584e188d13d2f388e9cfffe559503e0c74e63b87f481927e1a471e030b1146909a827494013055fb84db399eda14e378ad5aa420c50fdbcc75ab2d96503731f1e8d2fc75b14a0c91fb33e64c11bd525101dc2d01448563ecf0e212e28181f6a435df2ecdb482e4386b67dd910dbe95bf2efe28');
+      .setKey('standard_d472fa75e8dd3759aafa959886824a165b6d61eeea16e96a2edeb66343e1dc26f71a5500427c0c65c42a4ed0aa636f2ee15246bfa8460b990b409c21f4945b619ccb69ace009033caa444bd322f90fb1269a50d2be094069f50203ee19ffe1fb2c633696f2524349937f3a27a002e5089df777eeb46ee363c06e047417316768');
 
     const storage = new Appwrite.Storage(client);
     const db = new Appwrite.Databases(client);
 
     async function uploadProduct() {
-      alert("📤 Upload button clicked!");
-
       const title = document.getElementById('title').value.trim();
       const price = document.getElementById('price').value.trim();
       const description = document.getElementById('description').value.trim();
@@ -42,12 +40,9 @@
         const imageIDs = [];
 
         for (let i = 0; i < files.length; i++) {
-          alert("📸 Uploading image " + (i + 1));
           const res = await storage.createFile('6867c3a7003975a412af', 'unique()', files[i]);
           imageIDs.push(res.$id);
         }
-
-        alert("📦 Creating product in database...");
 
         await db.createDocument(
           '6867bc400023b22b6384',
