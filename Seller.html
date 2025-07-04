@@ -26,6 +26,8 @@
     const db = new Appwrite.Databases(client);
 
     async function uploadProduct() {
+      alert("📤 Upload button clicked!");
+
       const title = document.getElementById('title').value.trim();
       const price = document.getElementById('price').value.trim();
       const description = document.getElementById('description').value.trim();
@@ -39,13 +41,14 @@
       try {
         const imageIDs = [];
 
-        // Upload all images to Appwrite Storage
         for (let i = 0; i < files.length; i++) {
+          alert("📸 Uploading image " + (i + 1));
           const res = await storage.createFile('6867c3a7003975a412af', 'unique()', files[i]);
           imageIDs.push(res.$id);
         }
 
-        // Create document in database
+        alert("📦 Creating product in database...");
+
         await db.createDocument(
           '6867bc400023b22b6384',
           'products',
@@ -60,6 +63,9 @@
 
         alert("✅ Product uploaded successfully!");
       } catch (error) {
-        console.error("❌ Upload failed:", error);
-        alert("❌ Failed to upload product. Please check console.");
+        alert("❌ Upload failed: " + error.message);
       }
+    }
+  </script>
+</body>
+</html>
