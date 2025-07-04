@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Upload Product - Delight.pk</title>
+  <title>Seller - Delight.pk</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
 </head>
 <body>
-  <h2>Upload Product</h2>
+  <h2>🛒 Delight.pk – Upload Product</h2>
 
-  <input type="text" id="title" placeholder="Title"><br><br>
-  <input type="text" id="price" placeholder="Price"><br><br>
-  <textarea id="description" placeholder="Description"></textarea><br><br>
-  <input type="file" id="images" multiple accept="image/*"><br><br>
+  <input id="title" placeholder="Product Title" /><br><br>
+  <input id="price" placeholder="Product Price" /><br><br>
+  <textarea id="description" placeholder="Product Description"></textarea><br><br>
+  <input type="file" id="images" multiple accept="image/*" /><br><br>
 
-  <button onclick="uploadProduct()">Upload</button>
+  <button onclick="uploadProduct()">Upload Product</button>
 
   <script>
     const client = new Appwrite.Client()
@@ -23,39 +23,43 @@
       .setKey('standard_c788585cdd5f97022a9d6536b5584e188d13d2f388e9cfffe559503e0c74e63b87f481927e1a471e030b1146909a827494013055fb84db399eda14e378ad5aa420c50fdbcc75ab2d96503731f1e8d2fc75b14a0c91fb33e64c11bd525101dc2d01448563ecf0e212e28181f6a435df2ecdb482e4386b67dd910dbe95bf2efe28');
 
     const storage = new Appwrite.Storage(client);
-    const database = new Appwrite.Databases(client);
+    const db = new Appwrite.Databases(client);
 
     async function uploadProduct() {
-      const title = document.getElementById("title").value;
-      const price = document.getElementById("price").value;
-      const description = document.getElementById("description").value;
-      const files = document.getElementById("images").files;
+      const title = document.getElementById('title').value.trim();
+      const price = document.getElementById('price').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const files = document.getElementById('images').files;
 
       if (!title || !price || !description || files.length === 0) {
-        alert("Please fill all fields and select at least one image.");
+        alert("❗ Please fill all fields and select at least 1 image.");
         return;
       }
 
-      const uploadedImageIds = [];
-      for (let i = 0; i < files.length; i++) {
-        const res = await storage.createFile('6867c3a7003975a412af', 'unique()', files[i]);
-        uploadedImageIds.push(res.$id);
-      }
+      try {
+        const imageIDs = [];
 
-      await database.createDocument(
-        '6867bc400023b22b6384',
-        'products',
-        'unique()',
-        {
-          title,
-          price,
-          description,
-          images: uploadedImageIds
+        // Upload all images to Appwrite Storage
+        for (let i = 0; i < files.length; i++) {
+          const res = await storage.createFile('6867c3a7003975a412af', 'unique()', files[i]);
+          imageIDs.push(res.$id);
         }
-      );
 
-      alert("Product uploaded successfully!");
-    }
-  </script>
-</body>
-</html>
+        // Create document in database
+        await db.createDocument(
+          '6867bc400023b22b6384',
+          'products',
+          'unique()',
+          {
+            title: title,
+            price: price,
+            description: description,
+            images: imageIDs
+          }
+        );
+
+        alert("✅ Product uploaded successfully!");
+      } catch (error) {
+        console.error("❌ Upload failed:", error);
+        alert("❌ Failed to upload product. Please check console.");
+      }
