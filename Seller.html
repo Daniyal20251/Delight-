@@ -1,130 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Product - Delight.pk</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      max-width: 450px;
-      margin: auto;
-    }
-    input, textarea, button {
-      display: block;
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      font-size: 16px;
-    }
-    .preview {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      margin-bottom: 10px;
-    }
-    .preview img {
-      height: 100px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    #status {
-      font-weight: bold;
-      color: green;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
 </head>
 <body>
+  <h2>Upload Product</h2>
 
-  <h2>🛍️ Delight.pk – Add Product</h2>
+  <input type="text" id="title" placeholder="Title"><br><br>
+  <input type="text" id="price" placeholder="Price"><br><br>
+  <textarea id="description" placeholder="Description"></textarea><br><br>
+  <input type="file" id="images" multiple accept="image/*"><br><br>
 
-  <input type="text" id="title" placeholder="Product Title" required>
-  <input type="text" id="price" placeholder="Price (e.g., Rs. 999)" required>
-  <textarea id="description" placeholder="Product Description (HTML Allowed)" required></textarea>
-  <input type="file" id="images" multiple accept="image/*" required>
-  <div class="preview" id="previewBox"></div>
-  <button onclick="uploadProduct()">Upload Product</button>
+  <button onclick="uploadProduct()">Upload</button>
 
-  <p id="status"></p>
-
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
-
-  <!-- Firebase Config -->
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkaK...", // 🔐 Replace with your full API key
-      authDomain: "delightpk.firebaseapp.com",
-      databaseURL: "https://delightpk-default-rtdb.firebaseio.com",
-      projectId: "delightpk",
-      storageBucket: "delightpk.appspot.com",
-      messagingSenderId: "xxxxxxxx",
-      appId: "1:xxxxxxx:web:xxxxxxxx"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const storage = firebase.storage();
-  </script>
+    const client = new Appwrite.Client()
+      .setEndpoint('https://cloud.appwrite.io/v1')
+      .setProject('6867bb5f003e63ba248d')
+      .setKey('standard_c788585cdd5f97022a9d6536b5584e188d13d2f388e9cfffe559503e0c74e63b87f481927e1a471e030b1146909a827494013055fb84db399eda14e378ad5aa420c50fdbcc75ab2d96503731f1e8d2fc75b14a0c91fb33e64c11bd525101dc2d01448563ecf0e212e28181f6a435df2ecdb482e4386b67dd910dbe95bf2efe28');
 
-  <!-- Upload Logic -->
-  <script>
-    const imagesInput = document.getElementById("images");
-    const previewBox = document.getElementById("previewBox");
-
-    imagesInput.onchange = () => {
-      previewBox.innerHTML = "";
-      for (let i = 0; i < imagesInput.files.length; i++) {
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(imagesInput.files[i]);
-        previewBox.appendChild(img);
-      }
-    };
+    const storage = new Appwrite.Storage(client);
+    const database = new Appwrite.Databases(client);
 
     async function uploadProduct() {
-      const title = document.getElementById("title").value.trim();
-      const price = document.getElementById("price").value.trim();
-      const description = document.getElementById("description").value.trim();
-      const files = imagesInput.files;
-      const status = document.getElementById("status");
+      const title = document.getElementById("title").value;
+      const price = document.getElementById("price").value;
+      const description = document.getElementById("description").value;
+      const files = document.getElementById("images").files;
 
       if (!title || !price || !description || files.length === 0) {
-        status.innerText = "❌ Please fill all fields and select images.";
+        alert("Please fill all fields and select at least one image.");
         return;
       }
 
-      status.innerText = "⏳ Uploading...";
-
-      const imageUrls = [];
-
+      const uploadedImageIds = [];
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const storageRef = storage.ref("products/" + Date.now() + "_" + file.name);
-        await storageRef.put(file);
-        const url = await storageRef.getDownloadURL();
-        imageUrls.push(url);
+        const res = await storage.createFile('6867c3a7003975a412af', 'unique()', files[i]);
+        uploadedImageIds.push(res.$id);
       }
 
-      const newProduct = {
-        title,
-        price,
-        description,
-        image: imageUrls[0], // First image for home page
-        images: imageUrls,    // All for slider/details
-        createdAt: Date.now()
-      };
+      await database.createDocument(
+        '6867bc400023b22b6384',
+        'products',
+        'unique()',
+        {
+          title,
+          price,
+          description,
+          images: uploadedImageIds
+        }
+      );
 
-      const key = db.ref("products").push().key;
-      await db.ref("products/" + key).set(newProduct);
-
-      status.innerText = "✅ Product uploaded successfully!";
-      document.getElementById("title").value = "";
-      document.getElementById("price").value = "";
-      document.getElementById("description").value = "";
-      document.getElementById("images").value = "";
-      previewBox.innerHTML = "";
+      alert("Product uploaded successfully!");
     }
   </script>
 </body>
