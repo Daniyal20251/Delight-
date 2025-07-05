@@ -4,27 +4,26 @@
   <title>Home - Delight.pk</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
   <style>
-    .item-card {
+    .item {
       border: 1px solid #ccc;
+      border-radius: 10px;
       padding: 10px;
       margin: 10px;
-      border-radius: 10px;
-      box-shadow: 2px 2px 5px #eee;
       text-align: center;
     }
-    .item-card img {
+    img {
       width: 100%;
       max-height: 150px;
       object-fit: cover;
       border-radius: 10px;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
 </head>
 <body>
-  <h2>🛍️ Welcome to Delight.pk</h2>
-  <div id="itemContainer"></div>
+  <h2>🛍️ Delight.pk – Products</h2>
+  <div id="products"></div>
 
   <script>
     const client = new Appwrite.Client()
@@ -34,34 +33,36 @@
     const db = new Appwrite.Databases(client);
     const storage = new Appwrite.Storage(client);
 
-    const container = document.getElementById("itemContainer");
-
-    async function fetchProducts() {
+    async function loadProducts() {
       try {
-        const res = await db.listDocuments('6867bc400023b22b6384', 'products');
-        const items = res.documents;
+        const res = await db.listDocuments(
+          '6867bc400023b22b6384',
+          '6867bcaa001d84fb1963'
+        );
 
-        items.reverse().forEach(async (item) => {
-          let imageURL = '';
-          if (item.images && item.images.length > 0) {
-            imageURL = storage.getFilePreview('6867c3a7003975a412af', item.images[0]);
-          }
+        const container = document.getElementById("products");
+        container.innerHTML = "";
 
-          const card = document.createElement("div");
-          card.className = "item-card";
-          card.innerHTML = `
-            <img src="${imageURL}" alt="${item.title}">
+        for (const item of res.documents.reverse()) {
+          const firstImage = item.images[0];
+          const imgUrl = storage.getFilePreview('6867c3a7003975a412af', firstImage);
+
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <img src="${imgUrl}" alt="${item.title}" />
             <h3>${item.title}</h3>
             <p><strong>Price:</strong> ${item.price}</p>
           `;
-          container.appendChild(card);
-        });
-      } catch (error) {
-        container.innerHTML = "<p>❌ Failed to load products.</p>";
+          container.appendChild(div);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load products:", err);
+        document.getElementById("products").innerHTML = "<p>Failed to load products.</p>";
       }
     }
 
-    fetchProducts();
+    loadProducts();
   </script>
 </body>
 </html>

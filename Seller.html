@@ -19,8 +19,7 @@
   <script>
     const client = new Appwrite.Client()
       .setEndpoint('https://fra.cloud.appwrite.io/v1')
-      .setProject('6867bb5f003e63ba248d')
-      .setKey('standard_d472fa75e8dd3759aafa959886824a165b6d61eeea16e96a2edeb66343e1dc26f71a5500427c0c65c42a4ed0aa636f2ee15246bfa8460b990b409c21f4945b619ccb69ace009033caa444bd322f90fb1269a50d2be094069f50203ee19ffe1fb2c633696f2524349937f3a27a002e5089df777eeb46ee363c06e047417316768');
+      .setProject('6867bb5f003e63ba248d');
 
     const storage = new Appwrite.Storage(client);
     const db = new Appwrite.Databases(client);
@@ -40,25 +39,30 @@
         const imageIDs = [];
 
         for (let i = 0; i < files.length; i++) {
-          const res = await storage.createFile('6867c3a7003975a412af', 'unique()', files[i]);
+          const res = await storage.createFile(
+            '6867c3a7003975a412af',
+            'unique()',
+            files[i]
+          );
           imageIDs.push(res.$id);
         }
 
         await db.createDocument(
           '6867bc400023b22b6384',
-          'products',
+          '6867bcaa001d84fb1963',
           'unique()',
           {
-            title: title,
-            price: price,
-            description: description,
+            title,
+            price,
+            description,
             images: imageIDs
           }
         );
 
         alert("✅ Product uploaded successfully!");
       } catch (error) {
-        alert("❌ Upload failed: " + error.message);
+        console.error("❌ Upload failed:", error);
+        alert("❌ Failed to upload product. See console for error.");
       }
     }
   </script>
